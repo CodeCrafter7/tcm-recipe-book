@@ -27,6 +27,8 @@ jobs:
           cp recipe-book/index.html recipe-book/recipes.js recipe-book/.nojekyll _site/
           cp recipe-book/images/*.jpg _site/images/
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
