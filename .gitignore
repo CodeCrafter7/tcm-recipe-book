@@ -1,0 +1,6 @@
+.DS_Store
+~$*
+__pycache__/
+*.pyc
+TCM Recipe Book.pdf
+recipe-book/TCM Recipe Book.html

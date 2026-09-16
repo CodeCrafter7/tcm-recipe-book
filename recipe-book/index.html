@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TCM Kitchen Recipe Book</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1c1410;
+      --muted: #6b5748;
+      --paper: #f4ece1;
+      --card: #fffaf4;
+      --line: #e2d3c4;
+      --accent: #b33a1a;
+      --accent-dark: #8c2c14;
+      --gold: #c4a574;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Source Sans 3", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      background: #2a1c16;
+      color: #f4ece1;
+      padding: 28px 20px 40px;
+    }
+
+    .brand {
+      font-family: Fraunces, Georgia, serif;
+      font-size: 28px;
+      letter-spacing: 0.04em;
+      margin: 0 0 4px;
+    }
+    .brand span { color: #e8b089; }
+    .brand-sub {
+      margin: 0 0 22px;
+      color: #cbb7a8;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .search {
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+      margin-bottom: 18px;
+      background: #3b2a22;
+      color: #fffaf4;
+    }
+    .search::placeholder { color: #b7a396; }
+
+    .print-btn, .view-btn {
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 12px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+    .print-btn { background: var(--accent); color: white; }
+    .view-btn { background: #3b2a22; color: #f4ece1; }
+    .view-btn.on { background: #e8b089; color: #2a1c16; }
+
+    .edit-actions { display: none; margin: 0 0 10px; }
+    body.editing .edit-actions { display: block; }
+
+    .photo-edit, .remove-item, .add-pill, .pill-x { display: none; }
+    body.editing .photo-edit,
+    body.editing .remove-item,
+    body.editing .add-pill,
+    body.editing .pill-x { display: inline-flex; }
+
+    .photo-edit {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 8px;
+      z-index: 2;
+      background: rgba(28,20,16,.86);
+      color: #fffaf4;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .photo-edit input { display: none; }
+
+    .remove-item {
+      margin-top: 10px;
+      border: 1px solid #e2d3c4;
+      background: transparent;
+      color: var(--accent-dark);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    body.editing .ings li {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding-right: 4px;
+    }
+    .ings li input {
+      border: 0;
+      background: transparent;
+      font: inherit;
+      font-weight: 600;
+      color: inherit;
+      min-width: 4ch;
+      max-width: 28ch;
+    }
+    .pill-x {
+      border: 0;
+      background: #e4d2c2;
+      color: var(--ink);
+      width: 18px;
+      height: 18px;
+      border-radius: 99px;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+      padding: 0;
+    }
+    .add-pill {
+      border: 1px dashed #c9b7a6;
+      background: transparent;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    .plate-edit {
+      border: 0;
+      background: transparent;
+      font: inherit;
+      color: inherit;
+      width: 100%;
+      resize: vertical;
+      min-height: 2.4em;
+      line-height: 1.35;
+    }
+    body.editing .card { box-shadow: inset 0 0 0 1px #d7c3b1; }
+
+    .restore {
+      display: none;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #5a4338;
+    }
+    body.editing .restore.has-items { display: block; }
+    .restore h4 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #cbb7a8;
+    }
+    .restore button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: #3b2a22;
+      border: 0;
+      color: #eadfd4;
+      font: inherit;
+      font-size: 13px;
+      padding: 7px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 6px;
+    }
+
+    .lang-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .lang-switch button {
+      border: 1px solid #5a4338;
+      background: transparent;
+      color: #eadfd4;
+      border-radius: 8px;
+      padding: 8px 6px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .lang-switch button.active {
+      background: #fffaf4;
+      color: #2a1c16;
+      border-color: #fffaf4;
+    }
+
+    body.lang-hi,
+    body.lang-hi button,
+    body.lang-hi input {
+      font-family: "Noto Sans Devanagari", "Source Sans 3", sans-serif;
+    }
+    body.lang-hi .brand,
+    body.lang-hi .toolbar h1,
+    body.lang-hi .cover h2,
+    body.lang-hi .section-head h2,
+    body.lang-hi .body h3,
+    body.lang-hi .print-cover h1 {
+      font-family: "Noto Sans Devanagari", Georgia, serif;
+    }
+    body.lang-hi .brand-sub,
+    body.lang-hi .cat-pill,
+    body.lang-hi .cover-meta,
+    body.lang-hi .section-head span {
+      letter-spacing: 0.02em;
+      text-transform: none;
+    }
+    .en-name {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+      margin: -4px 0 8px;
+    }
+
+    .cat-nav { list-style: none; padding: 16px 0 0; margin: 0; }
+    .cat-nav button {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: 0;
+      color: #eadfd4;
+      font: inherit;
+      padding: 7px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+    }
+    .cat-nav button:hover,
+    .cat-nav button.active { background: #3b2a22; color: white; }
+    .cat-nav small { color: #cbb7a8; }
+
+    .main { padding: 28px 32px 80px; }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .toolbar h1 {
+      font-family: Fraunces, Georgia, serif;
+      font-size: 36px;
+      margin: 0;
+      font-weight: 500;
+    }
+    .toolbar p { margin: 6px 0 0; color: var(--muted); }
+
+    .cover[hidden] { display: none !important; }
+    .cover {
+      background: #2a1c16;
+      color: #f4ece1;
+      border-radius: 16px;
+      padding: 48px 44px;
+      margin-bottom: 28px;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      align-items: center;
+    }
+    .cover h2 {
+      font-family: Fraunces, Georgia, serif;
+      font-size: 52px;
+      line-height: 1.05;
+      margin: 0 0 12px;
+      font-weight: 500;
+    }
+    .cover p { margin: 0; color: #d8c4b4; max-width: 520px; font-size: 18px; }
+    .cover-meta {
+      border-left: 1px solid #5a4338;
+      padding-left: 24px;
+      font-size: 14px;
+      color: #e8b089;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .cover-meta strong {
+      display: block;
+      color: #fffaf4;
+      font-size: 28px;
+      letter-spacing: 0;
+      text-transform: none;
+      font-family: Fraunces, Georgia, serif;
+      margin-top: 4px;
+    }
+
+    .section { margin-bottom: 36px; }
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+    }
+    .section-head h2 {
+      font-family: Fraunces, Georgia, serif;
+      margin: 0;
+      font-size: 28px;
+      font-weight: 500;
+    }
+    .section-head span { color: var(--muted); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 188px;
+      overflow: hidden;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .photo {
+      position: relative;
+      background: #d9cbbd;
+      min-height: 188px;
+    }
+    .photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      position: absolute;
+      inset: 0;
+    }
+    .photo.missing::after {
+      content: attr(data-name);
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 16px;
+      font-family: Fraunces, Georgia, serif;
+      color: #6b5748;
+      font-size: 18px;
+    }
+
+    .body { padding: 14px 16px 16px; }
+    .kicker {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .cat-pill {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-dark);
+      font-weight: 700;
+    }
+    .sno { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .body h3 {
+      font-family: Fraunces, Georgia, serif;
+      font-size: 22px;
+      margin: 0 0 8px;
+      font-weight: 500;
+      line-height: 1.15;
+    }
+    .ings {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 0 0 10px;
+      padding: 0;
+      list-style: none;
+    }
+    .ings li {
+      background: #f0e4d6;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .plate {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.35;
+    }
+    .plate b { color: var(--ink); font-weight: 700; }
+
+    .empty {
+      padding: 40px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .hint {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #cbb7a8;
+      line-height: 1.4;
+    }
+
+    .print-cover { display: none; }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: relative; height: auto; }
+      .cover, .card { grid-template-columns: 1fr; }
+      .photo { min-height: 200px; }
+    }
+
+    @media print {
+      @page { size: A4 portrait; margin: 8mm; }
+      body { background: white; }
+      .sidebar, .toolbar, .cover, .hint, .photo-edit, .remove-item, .add-pill, .pill-x, .restore, .edit-actions { display: none !important; }
+      .app { display: block; }
+      .main { padding: 0; }
+      .section { margin: 0; }
+      .section-head { display: none; }
+      .grid { gap: 5mm; }
+      .card {
+        grid-template-columns: 52mm 1fr;
+        height: 64mm;
+        min-height: 64mm;
+        border-radius: 0;
+        border: 1px solid #c9b7a6;
+      }
+      .photo { min-height: 64mm; height: 64mm; }
+      .body { padding: 8px 12px; }
+      .body h3 { font-size: 16px; margin-bottom: 6px; }
+      .en-name { font-size: 10px; margin: -2px 0 4px; }
+      .ings li { font-size: 11px; padding: 2px 7px; }
+      .plate { font-size: 11px; }
+      body.lang-hi .body h3 { font-size: 15px; }
+      body.lang-hi .ings li { font-size: 10px; }
+      .print-cover {
+        display: flex !important;
+        page-break-after: always;
+        height: 270mm;
+        flex-direction: column;
+        justify-content: flex-end;
+        background: #2a1c16;
+        color: #f4ece1;
+        padding: 28mm 18mm;
+      }
+      .print-cover h1 {
+        font-family: Fraunces, Georgia, serif;
+        font-size: 48px;
+        margin: 0 0 10px;
+        font-weight: 500;
+      }
+    }
+
+    #editBtn[hidden],
+    .edit-actions[hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="print-cover">
+    <p id="printKicker" style="letter-spacing:.18em;text-transform:uppercase;color:#e8b089;margin:0 0 12px;">Kitchen staff reference</p>
+    <h1 id="printTitle">TCM Recipe Book</h1>
+    <p id="printBody" style="max-width:420px;color:#d8c4b4;">Main ingredients and final plating for every menu item. Four dishes per page. Not a method book — a pass guide.</p>
+  </div>
+
+  <div class="app">
+    <aside class="sidebar no-print">
+      <p class="brand">TCM <span id="brandKitchen">Kitchen</span></p>
+      <p class="brand-sub" id="brandSub">Recipe & plating book</p>
+      <div class="lang-switch">
+        <button type="button" id="langEn" class="active">English</button>
+        <button type="button" id="langHi">हिन्दी</button>
+      </div>
+      <input class="search" id="search" type="search" placeholder="Search item or ingredient" />
+      <button class="print-btn" id="printBtn" onclick="window.print()">Print / Save PDF</button>
+      <button class="view-btn" id="allBtn">Show all categories</button>
+      <button class="view-btn" id="editBtn">Edit book</button>
+      <div class="edit-actions">
+        <button class="print-btn" id="saveDiskBtn">Save to this computer</button>
+        <button class="view-btn" id="downloadBtn">Download recipes.json</button>
+      </div>
+      <p class="hint" id="hint">Print on A4. Use landscape only if you change printer settings — this book is designed for portrait, 4 items per page.</p>
+      <ul class="cat-nav" id="cats"></ul>
+      <div class="restore" id="restore"></div>
+    </aside>
+
+    <main class="main">
+      <section class="cover no-print" id="cover">
+        <div>
+          <h2 id="coverTitle">How each plate should look — and what goes in it.</h2>
+          <p id="coverBody">Built for the pass. Every item lists only the main ingredients and the final plating. No cooking steps. Open on a tablet, or print and keep at the station.</p>
+        </div>
+        <div class="cover-meta">
+          Menu 3.0
+          <strong id="count">154 items</strong>
+          <span id="catCountLabel"><span id="catCount"></span> categories</span>
+        </div>
+      </section>
+
+      <div class="toolbar no-print">
+        <div>
+          <h1 id="title">Full menu</h1>
+          <p id="subtitle">Main ingredients · plating photo · pass note</p>
+        </div>
+      </div>
+
+      <div id="content"></div>
+      <div class="empty" id="empty" hidden>No items match that search.</div>
+    </main>
+  </div>
+
+  <script src="recipes.js"></script>
+  <script>
+    const ORIGINAL = JSON.parse(JSON.stringify(window.RECIPES || []));
+    let recipes = JSON.parse(JSON.stringify(ORIGINAL));
+    const content = document.getElementById("content");
+    const empty = document.getElementById("empty");
+    const catsEl = document.getElementById("cats");
+    const searchEl = document.getElementById("search");
+    const titleEl = document.getElementById("title");
+    const allBtn = document.getElementById("allBtn");
+    const editBtn = document.getElementById("editBtn");
+    const restoreEl = document.getElementById("restore");
+    const saveDiskBtn = document.getElementById("saveDiskBtn");
+    const canEdit = ["localhost", "127.0.0.1"].includes(location.hostname);
+
+    const UI = {
+      en: {
+        kitchen: "Kitchen",
+        brandSub: "Recipe & plating book",
+        search: "Search item or ingredient",
+        print: "Print / Save PDF",
+        all: "Show all categories",
+        edit: "Edit book",
+        done: "Done editing",
+        download: "Download recipes.json",
+        saveDisk: "Save to this computer",
+        saved: "Saved to disk",
+        saveFail: "Could not save to disk. Keep using this computer’s browser save, or download the JSON.",
+        hint: "Print on A4 portrait, 4 items per page.",
+        hintEdit: "Click a pill to rename, × to delete, + to add. Change photo on the picture. Remove hides the item from the book.",
+        coverTitle: "How each plate should look — and what goes in it.",
+        coverBody: "Built for the pass. Every item lists only the main ingredients and the final plating. No cooking steps. Open on a tablet, or print and keep at the station.",
+        items: "items",
+        categories: "categories",
+        fullMenu: "Full menu",
+        subtitle: "Main ingredients · plating photo · pass note",
+        plate: "Plate:",
+        empty: "No items match that search.",
+        printKicker: "Kitchen staff reference",
+        printTitle: "TCM Recipe Book",
+        printBody: "Main ingredients and final plating for every menu item. Four dishes per page. Not a method book — a pass guide.",
+        itemWord: "items",
+        changePhoto: "Change photo",
+        addPill: "+ Add ingredient",
+        removeItem: "Remove from book",
+        restoreTitle: "Removed items",
+        restore: "Restore"
+      },
+      hi: {
+        kitchen: "किचन",
+        brandSub: "रेसिपी और प्लेटिंग बुक",
+        search: "आइटम या सामग्री खोजें",
+        print: "प्रिंट / PDF सेव करें",
+        all: "सभी कैटेगरी",
+        edit: "बुक एडिट करें",
+        done: "एडिट पूरा",
+        download: "recipes.json डाउनलोड",
+        saveDisk: "इस कंप्यूटर पर सेव करें",
+        saved: "डिस्क पर सेव हो गया",
+        saveFail: "डिस्क पर सेव नहीं हुआ।",
+        hint: "A4 पोर्ट्रेट पर प्रिंट करें, हर पेज पर 4 आइटम।",
+        hintEdit: "पिल पर क्लिक करके नाम बदलें, × से हटाएँ, + से जोड़ें। फ़ोटो बदलने के लिए तस्वीर पर टैप करें।",
+        coverTitle: "प्लेट कैसी दिखनी चाहिए — और उसमें क्या जाता है।",
+        coverBody: "किचन पास के लिए। हर आइटम में सिर्फ मुख्य सामग्री और फाइनल प्लेटिंग। बनाने के स्टेप नहीं। टैबलेट पर खोलें, या स्टेशन पर प्रिंट करके रखें।",
+        items: "आइटम",
+        categories: "कैटेगरी",
+        fullMenu: "पूरा मेनू",
+        subtitle: "मुख्य सामग्री · प्लेटिंग फ़ोटो · पास नोट",
+        plate: "प्लेट:",
+        empty: "इस खोज से कोई आइटम नहीं मिला।",
+        printKicker: "किचन स्टाफ रेफरेंस",
+        printTitle: "TCM रेसिपी बुक",
+        printBody: "हर मेनू आइटम की मुख्य सामग्री और फाइनल प्लेटिंग। हर पेज पर चार डिश। यह विधि बुक नहीं — पास गाइड है।",
+        itemWord: "आइटम",
+        changePhoto: "फ़ोटो बदलें",
+        addPill: "+ सामग्री जोड़ें",
+        removeItem: "बुक से हटाएँ",
+        restoreTitle: "हटाए गए आइटम",
+        restore: "वापस लाएँ"
+      }
+    };
+
+    let lang = localStorage.getItem("tcm-lang") === "hi" ? "hi" : "en";
+    let activeCat = "all";
+    let editing = false;
+    let hidden = new Set();
+    let photos = {};
+
+    try {
+      if (canEdit) {
+        const saved = JSON.parse(localStorage.getItem("tcm-edits") || "{}");
+        if (Array.isArray(saved.recipes) && saved.recipes.length) recipes = saved.recipes;
+        if (Array.isArray(saved.hidden)) hidden = new Set(saved.hidden);
+        if (saved.photos && typeof saved.photos === "object") photos = saved.photos;
+      }
+    } catch (err) {}
+
+    function t() { return UI[lang]; }
+    function loc(r) { return lang === "hi" && r.hi ? r.hi : r; }
+    function visible() { return recipes.filter(r => !hidden.has(r.id)); }
+    function recipeById(id) { return recipes.find(r => r.id === Number(id)); }
+    function ingsOf(r) { return loc(r).ingredients || []; }
+    function setIngs(r, list) {
+      if (lang === "hi") {
+        r.hi = r.hi || {};
+        r.hi.ingredients = list;
+      } else {
+        r.ingredients = list;
+      }
+    }
+    function persist() {
+      try {
+        localStorage.setItem("tcm-edits", JSON.stringify({
+          recipes,
+          hidden: [...hidden],
+          photos
+        }));
+      } catch (err) {
+        try {
+          localStorage.setItem("tcm-edits", JSON.stringify({
+            recipes,
+            hidden: [...hidden],
+            photos: {}
+          }));
+        } catch (e2) {}
+      }
+    }
+    function catName(enCat) {
+      if (lang !== "hi") return enCat;
+      const hit = visible().find(r => r.category === enCat);
+      return (hit && hit.hi && hit.hi.category) || enCat;
+    }
+    function categoriesOf(list) {
+      return [...new Set(list.map(r => r.category))];
+    }
+    function photoSrc(r) {
+      return photos[r.id] || ("images/" + String(r.id).padStart(3, "0") + ".jpg");
+    }
+
+    function applyChrome() {
+      const u = t();
+      const list = visible();
+      const cats = categoriesOf(list);
+      document.documentElement.lang = lang === "hi" ? "hi" : "en";
+      document.body.classList.toggle("lang-hi", lang === "hi");
+      document.body.classList.toggle("editing", editing);
+      editBtn.hidden = !canEdit;
+      document.querySelector(".edit-actions").hidden = !canEdit;
+      document.title = lang === "hi" ? "TCM किचन रेसिपी बुक" : "TCM Kitchen Recipe Book";
+      document.getElementById("brandKitchen").textContent = u.kitchen;
+      document.getElementById("brandSub").textContent = u.brandSub;
+      searchEl.placeholder = u.search;
+      document.getElementById("printBtn").textContent = u.print;
+      allBtn.textContent = u.all;
+      editBtn.textContent = editing ? u.done : u.edit;
+      editBtn.classList.toggle("on", editing);
+      document.getElementById("downloadBtn").textContent = u.download;
+      saveDiskBtn.textContent = u.saveDisk;
+      document.getElementById("hint").textContent = editing ? u.hintEdit : u.hint;
+      document.getElementById("coverTitle").textContent = u.coverTitle;
+      document.getElementById("coverBody").textContent = u.coverBody;
+      document.getElementById("count").textContent = list.length + " " + u.items;
+      document.getElementById("catCountLabel").innerHTML = `<span id="catCount">${cats.length}</span> ${u.categories}`;
+      document.getElementById("subtitle").textContent = u.subtitle;
+      empty.textContent = u.empty;
+      document.getElementById("printKicker").textContent = u.printKicker;
+      document.getElementById("printTitle").textContent = u.printTitle;
+      document.getElementById("printBody").textContent = u.printBody;
+      document.getElementById("langEn").classList.toggle("active", lang === "en");
+      document.getElementById("langHi").classList.toggle("active", lang === "hi");
+      document.getElementById("printKicker").style.letterSpacing = lang === "hi" ? "0.06em" : "0.18em";
+      document.getElementById("printKicker").style.textTransform = lang === "hi" ? "none" : "uppercase";
+      if (activeCat === "all") titleEl.textContent = u.fullMenu;
+      else titleEl.textContent = catName(activeCat);
+    }
+
+    function buildCats() {
+      const list = visible();
+      catsEl.innerHTML = "";
+      categoriesOf(list).forEach(cat => {
+        const n = list.filter(r => r.category === cat).length;
+        const li = document.createElement("li");
+        li.innerHTML = `<button data-cat="${cat}"><span>${catName(cat)}</span><small>${n}</small></button>`;
+        catsEl.appendChild(li);
+      });
+    }
+
+    function buildRestore() {
+      const u = t();
+      const removed = recipes.filter(r => hidden.has(r.id));
+      restoreEl.classList.toggle("has-items", editing && removed.length > 0);
+      if (!removed.length) {
+        restoreEl.innerHTML = "";
+        return;
+      }
+      restoreEl.innerHTML = `<h4>${u.restoreTitle}</h4>` + removed.map(r =>
+        `<button type="button" data-restore="${r.id}">${u.restore}: ${loc(r).name}</button>`
+      ).join("");
+    }
+
+    function matches(r, q) {
+      if (!q) return true;
+      const hi = r.hi || {};
+      const blob = [
+        r.name, r.category, r.plate, ...(r.ingredients || []),
+        hi.name, hi.category, hi.plate, ...(hi.ingredients || [])
+      ].join(" ").toLowerCase();
+      return blob.includes(q);
+    }
+
+    function escapeAttr(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    }
+
+    function cardHTML(r) {
+      const L = loc(r);
+      const ings = ingsOf(r).map((i, idx) => editing
+        ? `<li><input data-ing="${idx}" value="${escapeAttr(i)}" size="${Math.max(4, i.length)}"><button type="button" class="pill-x" data-del="${idx}" aria-label="Remove">×</button></li>`
+        : `<li>${escapeAttr(i)}</li>`
+      ).join("");
+      const enLine = lang === "hi" ? `<span class="en-name">${escapeAttr(r.name)}</span>` : "";
+      const plateBlock = editing
+        ? `<p class="plate"><b>${t().plate}</b> <textarea class="plate-edit" data-plate="1">${escapeAttr(L.plate || "")}</textarea></p>`
+        : `<p class="plate"><b>${t().plate}</b> ${escapeAttr(L.plate || "")}</p>`;
+      return `
+        <article class="card" data-id="${r.id}">
+          <div class="photo missing" data-name="${escapeAttr(L.name)}" data-id="${r.id}">
+            <img src="${photoSrc(r)}" alt="${escapeAttr(L.name)}" onload="this.parentElement.classList.remove('missing')" onerror="this.remove()" />
+            <label class="photo-edit">${t().changePhoto}<input type="file" accept="image/*" data-photo="${r.id}"></label>
+          </div>
+          <div class="body">
+            <div class="kicker">
+              <span class="cat-pill">${escapeAttr(L.category)}</span>
+              <span class="sno">#${r.id}</span>
+            </div>
+            <h3>${escapeAttr(L.name)}</h3>
+            ${enLine}
+            <ul class="ings">${ings}</ul>
+            <button type="button" class="add-pill">${t().addPill}</button>
+            ${plateBlock}
+            <button type="button" class="remove-item">${t().removeItem}</button>
+          </div>
+        </article>`;
+    }
+
+    function render() {
+      applyChrome();
+      buildCats();
+      buildRestore();
+      const q = searchEl.value.trim().toLowerCase();
+      const list = visible().filter(r => (activeCat === "all" || r.category === activeCat) && matches(r, q));
+      empty.hidden = list.length > 0;
+      document.getElementById("cover").hidden = activeCat !== "all" || Boolean(q) || editing;
+
+      document.querySelectorAll(".cat-nav button").forEach(b => {
+        b.classList.toggle("active", b.dataset.cat === activeCat);
+      });
+
+      if (!list.length) {
+        content.innerHTML = "";
+        return;
+      }
+
+      const grouped = new Map();
+      list.forEach(r => {
+        if (!grouped.has(r.category)) grouped.set(r.category, []);
+        grouped.get(r.category).push(r);
+      });
+
+      let html = "";
+      grouped.forEach((items, cat) => {
+        const head = activeCat === "all"
+          ? `<div class="section-head"><h2>${catName(cat)}</h2><span>${items.length} ${t().itemWord}</span></div>`
+          : "";
+        html += `<section class="section">${head}<div class="grid">${items.map(cardHTML).join("")}</div></section>`;
+      });
+      content.innerHTML = html;
+    }
+
+    function setLang(next) {
+      lang = next;
+      localStorage.setItem("tcm-lang", lang);
+      render();
+    }
+
+    function resizePhoto(file) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          const max = 900;
+          let w = img.width, h = img.height;
+          if (Math.max(w, h) > max) {
+            const s = max / Math.max(w, h);
+            w = Math.round(w * s);
+            h = Math.round(h * s);
+          }
+          const c = document.createElement("canvas");
+          c.width = w;
+          c.height = h;
+          c.getContext("2d").drawImage(img, 0, 0, w, h);
+          URL.revokeObjectURL(url);
+          resolve(c.toDataURL("image/jpeg", 0.82));
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    function download(filename, text, type) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([text], { type: type || "application/json" }));
+      a.download = filename;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    catsEl.addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      activeCat = btn.dataset.cat;
+      searchEl.value = "";
+      render();
+    });
+
+    restoreEl.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-restore]");
+      if (!btn) return;
+      hidden.delete(Number(btn.dataset.restore));
+      persist();
+      render();
+    });
+
+    content.addEventListener("click", (e) => {
+      const card = e.target.closest(".card");
+      if (!card || !editing) return;
+      const r = recipeById(card.dataset.id);
+      if (!r) return;
+      if (e.target.closest(".remove-item")) {
+        hidden.add(r.id);
+        persist();
+        render();
+        return;
+      }
+      if (e.target.closest(".add-pill")) {
+        const next = ingsOf(r).concat([lang === "hi" ? "नई सामग्री" : "New ingredient"]);
+        setIngs(r, next);
+        persist();
+        render();
+        const inputs = card.querySelectorAll("[data-ing]");
+        const last = content.querySelector(`.card[data-id="${r.id}"] [data-ing]:last-of-type`);
+        if (last) { last.focus(); last.select(); }
+        return;
+      }
+      const del = e.target.closest("[data-del]");
+      if (del) {
+        const next = ingsOf(r).filter((_, i) => i !== Number(del.dataset.del));
+        setIngs(r, next);
+        persist();
+        render();
+      }
+    });
+
+    content.addEventListener("input", (e) => {
+      const card = e.target.closest(".card");
+      if (!card || !editing) return;
+      const r = recipeById(card.dataset.id);
+      if (!r) return;
+      if (e.target.matches("[data-ing]")) {
+        const idx = Number(e.target.dataset.ing);
+        const next = ingsOf(r).slice();
+        next[idx] = e.target.value;
+        setIngs(r, next);
+        e.target.size = Math.max(4, e.target.value.length);
+        persist();
+      }
+      if (e.target.matches("[data-plate]")) {
+        if (lang === "hi") {
+          r.hi = r.hi || {};
+          r.hi.plate = e.target.value;
+        } else {
+          r.plate = e.target.value;
+        }
+        persist();
+      }
+    });
+
+    content.addEventListener("change", async (e) => {
+      const input = e.target.closest("input[type=file][data-photo]");
+      if (!input || !input.files || !input.files[0]) return;
+      const id = Number(input.dataset.photo);
+      try {
+        const data = await resizePhoto(input.files[0]);
+        photos[id] = data;
+        persist();
+        const img = input.closest(".photo").querySelector("img");
+        if (img) {
+          img.src = data;
+          img.parentElement.classList.remove("missing");
+        } else {
+          render();
+        }
+        if (canEdit) {
+          fetch("/api/photo/" + id, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data })
+          }).catch(() => {});
+        }
+      } catch (err) {}
+    });
+
+    allBtn.addEventListener("click", () => {
+      activeCat = "all";
+      searchEl.value = "";
+      render();
+    });
+
+    editBtn.addEventListener("click", () => {
+      if (!canEdit) return;
+      editing = !editing;
+      render();
+    });
+
+    saveDiskBtn.addEventListener("click", async () => {
+      const keep = recipes.filter(r => !hidden.has(r.id));
+      saveDiskBtn.disabled = true;
+      try {
+        const res = await fetch("/api/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipes: keep, photos })
+        });
+        if (!res.ok) throw new Error("save failed");
+        saveDiskBtn.textContent = t().saved;
+        photos = {};
+        persist();
+      } catch (err) {
+        saveDiskBtn.textContent = t().saveFail;
+      }
+      setTimeout(() => {
+        saveDiskBtn.disabled = false;
+        saveDiskBtn.textContent = t().saveDisk;
+      }, 1800);
+    });
+
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+      const keep = recipes.filter(r => !hidden.has(r.id));
+      download("recipes.json", JSON.stringify(keep, null, 2), "application/json");
+      setTimeout(() => {
+        download("recipes.js", "window.RECIPES = " + JSON.stringify(keep) + ";\n", "text/javascript");
+      }, 400);
+    });
+
+    document.getElementById("langEn").addEventListener("click", () => setLang("en"));
+    document.getElementById("langHi").addEventListener("click", () => setLang("hi"));
+    searchEl.addEventListener("input", render);
+    searchEl.addEventListener("change", render);
+    searchEl.addEventListener("keyup", render);
+
+    render();
+  </script>
+</body>
+</html>
