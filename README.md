@@ -20,4 +20,6 @@ Edit mode only works on this computer. The public site is view-only.
 
 ## Live site
 
-GitHub Pages publishes the `recipe-book` folder after each push to `main`.
+https://codecrafter7.github.io/tcm-recipe-book/
+
+GitHub Pages publishes the kitchen book after each push to `main`. The live site is view-only.
